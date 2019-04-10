@@ -9,13 +9,15 @@ beautifulsoup4 = ">=4.6.3"
 click = ">=6.7"
 colorlog = ">=3.1.4"
 requests = ">=2.19.1"
+bson = "*"
+pendulum = ">=2.0"
 
 [dev-packages]
 black = "*"
 flake8 = "*"
 flake8-bugbear = "*"
 flake8-mypy = "*"
-isort = {version = "*", extras=["pipfile"]}
+isort = {version = "*",extras = ["pipfile"]}
 mypy = "*"
 pytest = "*"
 pytest-cov = "*"

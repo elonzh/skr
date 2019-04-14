@@ -1,8 +1,7 @@
+import click
 import random
 import sys
 import time
-
-import click
 
 FRAMES = ["🌝", "🌖", "🌗", "🌘", "🌚", "🌒", "🌓", "🌔"]
 CHOICES = ["🌝", "🌚"]

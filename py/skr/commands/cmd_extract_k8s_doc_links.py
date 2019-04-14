@@ -1,10 +1,9 @@
-import html
-import time
-from urllib.parse import urljoin
-
 import click
+import html
 import requests
+import time
 from bs4 import BeautifulSoup, SoupStrainer
+from urllib.parse import urljoin
 
 
 class Link:

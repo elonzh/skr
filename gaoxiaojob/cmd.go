@@ -1,28 +1,19 @@
 package gaoxiaojob
 
-import (
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-)
+import "github.com/sirupsen/logrus"
 
-var storageFilename string
-var keywords []string
-var debug bool
-
-var Cmd = &cobra.Command{
-	Use:     "gaoxiaojob",
-	Version: "v20190409",
-	Short:   "抓取 高校人才网(http://gaoxiaojob.com/) 的最近招聘信息并根据关键词推送至钉钉",
-	Args:    cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := Run(storageFilename, args[0], keywords, debug); err != nil {
-			logrus.WithError(err).Fatalln()
-		}
-	},
-}
-
-func init() {
-	Cmd.Flags().StringArrayVarP(&keywords, "keywords", "k", []string{}, "关键词")
-	Cmd.Flags().StringVarP(&storageFilename, "storage", "s", "storage.boltdb", "历史记录数据路径")
-	Cmd.Flags().BoolVarP(&debug, "verbose", "v", false, "调试模式")
+func Run(storageFilename, webhookURL string, keywords []string) error {
+	var err error
+	jobs := FetchJobs(storageFilename)
+	logrus.WithField("JobsNum", len(jobs)).Infoln("抓取最新招聘信息完成")
+	jobs = FilterJobs(jobs, keywords)
+	logrus.WithFields(logrus.Fields{
+		"FilteredJobsNum": len(jobs),
+		"Keywords":        keywords,
+	}).Infoln("过滤最新招聘信息完成")
+	if len(jobs) > 0 {
+		err = Notify(webhookURL, jobs)
+		logrus.WithError(err).WithField("WebhookURL", webhookURL).Warningln("推送招聘信息")
+	}
+	return err
 }

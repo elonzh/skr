@@ -10,10 +10,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/earlzo/colly-bolt-storage/colly/bolt"
 	"github.com/gocolly/colly"
-	collyDebug "github.com/gocolly/colly/debug"
 	"github.com/sirupsen/logrus"
 
 	"github.com/earlzo/skr/dingtalk"
+	"github.com/earlzo/skr/utils"
 )
 
 var URL = url.URL{
@@ -27,72 +27,12 @@ func init() {
 	LOCATION, _ = time.LoadLocation("Asia/Shanghai")
 }
 
-type CollectorDebugger struct {
-}
-
-func (d CollectorDebugger) Init() error {
-	return nil
-}
-func (d CollectorDebugger) Event(e *collyDebug.Event) {
-	logrus.WithFields(logrus.Fields{
-		"CollectorID": e.CollectorID,
-		"RequestID":   e.RequestID,
-		"Type":        e.Type,
-		"Values":      e.Values,
-	}).Debugln()
-}
-
-var _ collyDebug.Debugger = CollectorDebugger{}
-
-type Job struct {
-	URL   string
-	Title string
-
-	Meta map[string]string
-	// 分类
-	Categories []string
-	// 需求学科
-	Subjects []string
-	// 所属省份
-	Provinces []string
-	// 工作地点
-	Locations []string
-
-	// 发布时间
-	PublishedAt *time.Time
-	// 截止日期
-	ExpireAt *time.Time
-
-	Body string
-}
-
-func Run(storageFilename, webhookURL string, keywords []string, debug bool) error {
-	if debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-	var err error
-	jobs := FetchJobs(storageFilename, debug)
-	logrus.WithField("JobsNum", len(jobs)).Infoln("抓取最新招聘信息完成")
-	jobs = FilterJobs(jobs, keywords)
-	logrus.WithFields(logrus.Fields{
-		"FilteredJobsNum": len(jobs),
-		"Keywords":        keywords,
-	}).Infoln("过滤最新招聘信息完成")
-	if len(jobs) > 0 {
-		err = Notify(webhookURL, jobs)
-		logrus.WithError(err).WithField("WebhookURL", webhookURL).Warningln("推送招聘信息")
-	}
-	return err
-}
-
-func FetchJobs(storageFilename string, debug bool) []*Job {
+func FetchJobs(storageFilename string) []*Job {
 	var jobs []*Job
 	var options = []func(*colly.Collector){
 		colly.DetectCharset(),
 		colly.AllowedDomains(URL.Host),
-	}
-	if debug {
-		options = append(options, colly.Debugger(&CollectorDebugger{}))
+		colly.Debugger(&utils.LogrusCollectorDebugger{}),
 	}
 
 	jobListCollector := colly.NewCollector(options...)
@@ -178,14 +118,11 @@ func FilterJobs(jobs []*Job, keywords []string) []*Job {
 	}
 	return filteredJobs
 }
-func DummyImage(width, height int, backgroundColor, foregroundColor, text, format string) string {
-	return fmt.Sprintf("https://dummyimage.com/%dx%d/%s/%s.%s&text=%s", width, height, backgroundColor, foregroundColor, format, url.QueryEscape(text))
-}
 
 func Notify(webhookURL string, jobs []*Job) error {
 	feedCardLinks := make([]dingtalk.FeedCardLink, len(jobs))
 	for i, job := range jobs {
-		pictureURL := DummyImage(400, 400, "1ff22a", "0011ff", job.Categories[len(job.Categories)-1], "png")
+		pictureURL := utils.DummyImage(400, 400, "1ff22a", "0011ff", job.Categories[len(job.Categories)-1], "png")
 		feedCardLinks[i] = dingtalk.FeedCardLink{
 			Title:      job.Title,
 			MessageURL: job.URL,

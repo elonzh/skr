@@ -1,56 +1,43 @@
 package douyin
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var silent bool
-
-var Cmd = &cobra.Command{
-	Use:     "douyin",
-	Short:   "爱抖音, 爱抖音小助手",
-	Long:    `爱抖音小助手, 它能帮你解析抖音名片数据`,
-	Version: "v20180716",
-	Run: func(cmd *cobra.Command, args []string) {
-		urls := viper.GetStringSlice("urls")
-		logrus.WithField("urlsNum", len(urls)).Infoln("提取链接成功")
-
-		users := make([]*User, 0, len(urls))
-		for i, url := range urls {
-			{
-				logrus.Infof("开始请求第 %d 条链接: %s", i+1, url)
-				user := User{URL: url}
-				resp, _, errs := Fetch(user.URL)
-				if len(errs) > 0 {
-					logrus.Fatalln(errs)
-				}
-				doc, err := goquery.NewDocumentFromReader(resp.Body)
-				if err != nil {
-					logrus.WithError(err).Fatal("初始化页面失败")
-				}
-				Parse(doc, &user)
-				users = append(users, &user)
-			}
-		}
-		data, err := json.MarshalIndent(users, "", "  ")
+func Run(urls []string) error {
+	logrus.WithField("urlsNum", len(urls)).Infoln("提取链接成功")
+	c := colly.NewCollector()
+	users := make([]*User, 0, len(urls))
+	c.OnRequest(func(request *colly.Request) {
+		logrus.Debugf("开始请求链接: %s", request.URL)
+		request.Headers.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
+	})
+	c.OnResponse(func(response *colly.Response) {
+		user := User{URL: response.Request.URL.String()}
+		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(response.Body))
 		if err != nil {
-			logrus.WithError(err).Fatal("数据编码失败")
+			logrus.WithError(err).Fatal("初始化页面失败")
 		}
-		fmt.Println(string(data))
-	},
-}
+		Parse(doc, &user)
+		users = append(users, &user)
+	})
+	for _, url := range urls {
+		if err := c.Visit(url); err != nil {
+			logrus.WithError(err).Warningln("请求失败:", url)
+		}
+	}
+	c.Wait()
 
-func init() {
-	Cmd.PersistentFlags().BoolVar(&silent, "silent", false, "静默模式, 只在出错时输出日志")
-	Cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "配置文件路径(默认为 config.yaml)")
-
-	Cmd.PersistentFlags().StringSliceP("urls", "u", nil, "抖音分享链接")
-	viper.BindPFlag("urls", Cmd.PersistentFlags().Lookup("urls"))
+	data, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		logrus.WithError(err).Fatal("数据编码失败")
+	}
+	fmt.Println(string(data))
+	return err
 }

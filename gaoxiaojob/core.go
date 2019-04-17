@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -28,6 +29,7 @@ func init() {
 }
 
 func FetchJobs(storageFilename string) []*Job {
+	var mut sync.Mutex
 	var jobs []*Job
 	var options = []func(*colly.Collector){
 		colly.DetectCharset(),
@@ -93,6 +95,8 @@ func FetchJobs(storageFilename string) []*Job {
 			"PublishedAt": job.PublishedAt,
 			"ExpireAt":    job.ExpireAt,
 		}).Infoln("job fetched")
+		mut.Lock()
+		defer mut.Unlock()
 		jobs = append(jobs, &job)
 	})
 	err := jobListCollector.Visit(URL.String())

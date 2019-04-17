@@ -2,4 +2,5 @@
 .vscode
 
 dist
-storage.db
+*.boltdb
+coverage.txt

@@ -1,11 +1,10 @@
+import click
+import colorlog
 import importlib
 import logging
 import os
 import sys
 from collections import namedtuple
-
-import click
-import colorlog
 
 
 def is_root():

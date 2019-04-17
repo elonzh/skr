@@ -1,12 +1,11 @@
-import itertools
-import logging
-from concurrent.futures import ThreadPoolExecutor
-from pprint import pprint
-
 import bson
 import click
+import itertools
+import logging
 import pendulum
 import requests
+from concurrent.futures import ThreadPoolExecutor
+from pprint import pprint
 
 
 def iter_date(

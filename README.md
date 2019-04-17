@@ -1,4 +1,4 @@
-# skr ![Tag](https://img.shields.io/github/tag/earlzo/skr.svg?style=flat-square) [![Go Report Card](https://goreportcard.com/badge/github.com/earlzo/skr)](https://goreportcard.com/report/github.com/earlzo/skr?style=flat-square) [![Build Status](https://img.shields.io/travis/earlzo/skr.svg?style=flat-square)](https://travis-ci.org/earlzo/skr)
+# skr ![Tag](https://img.shields.io/github/tag/earlzo/skr.svg?style=flat-square) [![GolangCI](https://golangci.com/badges/github.com/earlzo/skr.svg)]() [![Build Status](https://img.shields.io/travis/earlzo/skr.svg?style=flat-square)](https://travis-ci.org/earlzo/skr)
 
 一组脚本。
 

@@ -2,8 +2,7 @@
 sudo: false
 language: go
 env:
-  - GO111MODULE=on
-  - CODECOV_TOKEN="66c8a45b-83f0-46aa-985b-8ba0aa2149cd"
+  - GO111MODULE=on CODECOV_TOKEN="66c8a45b-83f0-46aa-985b-8ba0aa2149cd"
 go:
   - master
 go_import_path: github.com/earlzo/skr

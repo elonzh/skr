@@ -2,9 +2,6 @@ package douyin
 
 import (
 	"bytes"
-	"crypto/md5"
-	"fmt"
-	"io"
 	"math"
 	"strconv"
 	"strings"
@@ -22,11 +19,14 @@ var font *truetype.Font
 func init() {
 	var err error
 	box := packr.NewBox("./static")
-	data, err := box.MustBytes("iconfont_da2e2ef.ttf")
+	data, err := box.Find("iconfont_da2e2ef.ttf")
 	if err != nil {
 		logrus.WithError(err).Panicln("载入字体数据失败")
 	}
 	font, err = truetype.Parse(data)
+	if err != nil {
+		logrus.WithError(err).Panicln("载入字体数据失败")
+	}
 	logrus.WithFields(logrus.Fields{
 		"NameIDFontFamily":       font.Name(truetype.NameIDFontFamily),
 		"NameIDFontFullName":     font.Name(truetype.NameIDFontFullName),
@@ -105,15 +105,6 @@ func numStr2num(numStr string) uint {
 
 // Parse 解析抖音用户名片数据
 func Parse(doc *goquery.Document, user *User) {
-	h := md5.New()
-	doc.Find("head > style").Each(func(i int, s *goquery.Selection) {
-		io.WriteString(h, s.Text())
-	})
-	user.StyleMD5 = fmt.Sprintf("%x", h.Sum(nil))
-	if user.StyleMD5 != "2670f0eb9e90d7cfa3ad101b005dd0bd" {
-		logrus.WithField("NewStyleMD5", user.StyleMD5).Warnln("字体样式哈希出现变化")
-	}
-
 	//doc.Find(".shortid .iconfont").Each(func(i int, s *goquery.Selection) {
 	//	t := strings.Replace(s.Text(), " ", "", -1)
 	//	for _, r := range t {

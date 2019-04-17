@@ -1,4 +1,4 @@
-# skr [![license](https://img.shields.io/github/license/earlzo/skr.svg?style=flat-square)](https://github.com/earlzo/skr/blob/master/LICENSE) [![Build Status](https://img.shields.io/travis/earlzo/skr.svg?style=flat-square)](https://travis-ci.org/earlzo/skr)
+# skr ![Tag](https://img.shields.io/github/tag/earlzo/skr.svg?style=flat-square) [![Go Report Card](https://goreportcard.com/badge/github.com/earlzo/skr)](https://goreportcard.com/report/github.com/earlzo/skr?style=flat-square) [![Build Status](https://img.shields.io/travis/earlzo/skr.svg?style=flat-square)](https://travis-ci.org/earlzo/skr)
 
 一组脚本。
 
@@ -52,3 +52,7 @@ Flags:
 - [今天涨粉了吗?](examples/今天涨粉了吗)
 
 > [查看更多示例](examples)
+
+# License
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fearlzo%2Fskr.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fearlzo%2Fskr?ref=badge_large)

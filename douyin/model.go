@@ -2,8 +2,7 @@ package douyin
 
 // User 抖音用户信息
 type User struct {
-	URL      string
-	StyleMD5 string
+	URL string
 
 	ID            string
 	Avatar        string

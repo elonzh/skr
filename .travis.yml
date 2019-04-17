@@ -1,12 +1,11 @@
 # https://docs.travis-ci.com/user/languages/go/
 sudo: false
 language: go
+env:
+  - GO111MODULE=on
 go:
   - master
-go_import_path: github.com/earlzo/jobctl
-cache:
-  directories:
-    - $GOPATH/github.com/earlzo/jobctl/vendor
+go_import_path: github.com/earlzo/skr
 
 stages:
   - lint
@@ -15,12 +14,10 @@ stages:
 
 jobs:
   include:
-    - stage: lint
+    - stage: lint and test
       script:
         - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
         - golangci-lint run
-    - stage: test
-      script:
         - go test -v ./...
     - stage: deploy
       script: skip

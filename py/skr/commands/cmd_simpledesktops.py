@@ -1,11 +1,10 @@
+import click
 import logging
 import os
-from multiprocessing.dummy import Pool
-from urllib.parse import urlparse
-
-import click
 import requests
 from bs4 import BeautifulSoup
+from multiprocessing.dummy import Pool
+from urllib.parse import urlparse
 
 
 class SimpleDesktopsDownloader:

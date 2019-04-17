@@ -1,10 +1,9 @@
+import click
 import logging
 import os
+import requests
 import xml.etree.ElementTree as ET
 from multiprocessing.dummy import Pool
-
-import click
-import requests
 
 
 class OctocatsDownloader:

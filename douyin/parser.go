@@ -5,6 +5,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/PuerkitoBio/goquery"
@@ -113,6 +114,7 @@ func Parse(doc *goquery.Document, user *User) {
 	//		// fmt.Println(id[i], idx, id[i] == rune_map[r], id[i] == num_map[idx])
 	//	}
 	//})
+	user.Time = time.Now()
 
 	userInfoDoc := doc.Find("#pagelet-user-info").First()
 	personalCard := userInfoDoc.Find(".personal-card").First()

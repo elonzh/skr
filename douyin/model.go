@@ -1,5 +1,7 @@
 package douyin
 
+import "time"
+
 // User 抖音用户信息
 type User struct {
 	URL string
@@ -22,4 +24,6 @@ type User struct {
 	PostNum     uint
 	LikedNumStr string
 	LikedNum    uint
+
+	Time time.Time
 }

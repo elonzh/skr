@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/earlzo/skr/admission"
 	"os"
 	"path/filepath"
 
@@ -40,6 +41,38 @@ func init() {
 	v := viper.GetViper()
 	rootCmd.AddCommand(newDouyinCommand(v))
 	rootCmd.AddCommand(newGaoxiaoJobCommand(v))
+	rootCmd.AddCommand(newAdmissionCommand(v))
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		exe, err := os.Executable()
+		if err != nil {
+			logrus.WithError(err).Fatalln("获取程序路径失败")
+		}
+		cfgDir, err := filepath.Abs(filepath.Dir(exe))
+		if err != nil {
+			logrus.WithError(err).Fatalln("获取程序所在文件夹路径失败")
+		}
+		viper.AddConfigPath(cfgDir)
+		viper.SetConfigName("skr")
+	}
+	if err := viper.ReadInConfig(); err == nil {
+		logrus.WithField("cfgFile", viper.ConfigFileUsed()).Debugln("成功找到配置文件")
+	} else {
+		logrus.WithError(err).Debugln("没有找到配置文件")
+	}
+}
+
+func initLogger() {
+	level := logrus.Level(viper.GetInt("logLevel"))
+	logrus.SetLevel(level)
+	if level >= logrus.DebugLevel {
+		rootCmd.DebugFlags()
+		viper.Debug()
+	}
 }
 
 func newDouyinCommand(v *viper.Viper) *cobra.Command {
@@ -86,33 +119,16 @@ func newGaoxiaoJobCommand(v *viper.Viper) *cobra.Command {
 	return cmd
 }
 
-func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		exe, err := os.Executable()
-		if err != nil {
-			logrus.WithError(err).Fatalln("获取程序路径失败")
-		}
-		cfgDir, err := filepath.Abs(filepath.Dir(exe))
-		if err != nil {
-			logrus.WithError(err).Fatalln("获取程序所在文件夹路径失败")
-		}
-		viper.AddConfigPath(cfgDir)
-		viper.SetConfigName("skr")
+func newAdmissionCommand(v *viper.Viper) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "admission",
+		Version: "v20190615",
+		Short:   "根据数据批量生成录取通知书并发送",
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			admission.Run()
+			return nil
+		},
 	}
-	if err := viper.ReadInConfig(); err == nil {
-		logrus.WithField("cfgFile", viper.ConfigFileUsed()).Debugln("成功找到配置文件")
-	} else {
-		logrus.WithError(err).Debugln("没有找到配置文件")
-	}
-}
-
-func initLogger() {
-	level := logrus.Level(viper.GetInt("logLevel"))
-	logrus.SetLevel(level)
-	if level >= logrus.DebugLevel {
-		rootCmd.DebugFlags()
-		viper.Debug()
-	}
+	return cmd
 }

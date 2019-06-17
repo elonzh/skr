@@ -2,6 +2,7 @@ package admission
 
 import (
 	"crypto/tls"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"github.com/go-ole/go-ole"
@@ -132,28 +133,56 @@ func DisableUniofficeWatermark() {
 	}
 }
 
+const (
+	DIRECT = iota + 1
+	CONDITIONED
+)
+
+type Student struct {
+	ID            int
+	Name          string
+	MailAddress   string
+	AdmissionType int
+	ReleaseDate   string
+}
+
+func LoadStudents(p string) {
+	file, err := os.Open(p)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(records)
+}
+
 func Run() {
-	DisableUniofficeWatermark()
-	fields := map[string]string{
-		"编号":     "1909B000",
-		"姓名":     "张三",
-		"缴费截止日期": "0000年6月7日",
-		"日期":     "0000年6月1日",
-	}
-	//templatePath := "D:/i/Desktop/admission_notice/direct_template.docx"
-	templatePath := "D:/i/Desktop/admission_notice/conditioned_template.docx"
-	//templatePath := "test.docx"
-	outputPath := "D:/i/Desktop/admission_notice/MakeAdmissionNoticeFile.docx"
-	//outputPath := "MakeAdmissionNoticeFile.docx"
-	pdfOutputPath := "D:/i/Desktop/admission_notice/MakeAdmissionNoticeFile.pdf"
-	//pdfOutputPath := "MakeAdmissionNoticeFile.pdf"
-	//SimpleMakeAdmissionNoticeFile(fields)
-	if err := os.Remove(outputPath); err != nil {
-		log.Println(err)
-	}
-	if err := os.Remove(pdfOutputPath); err != nil {
-		log.Println(err)
-	}
-	MakeAdmissionNoticeFile(templatePath, fields, outputPath)
-	ConvertToPDF(outputPath, pdfOutputPath)
+	//DisableUniofficeWatermark()
+	//fields := map[string]string{
+	//	"编号":     "1909B000",
+	//	"姓名":     "张三",
+	//	"缴费截止日期": "0000年6月7日",
+	//	"日期":     "0000年6月1日",
+	//}
+	////templatePath := "D:/i/Desktop/admission_notice/direct_template.docx"
+	//templatePath := "D:/i/Desktop/admission_notice/conditioned_template.docx"
+	////templatePath := "test.docx"
+	//outputPath := "D:/i/Desktop/admission_notice/MakeAdmissionNoticeFile.docx"
+	////outputPath := "MakeAdmissionNoticeFile.docx"
+	//pdfOutputPath := "D:/i/Desktop/admission_notice/MakeAdmissionNoticeFile.pdf"
+	////pdfOutputPath := "MakeAdmissionNoticeFile.pdf"
+	////SimpleMakeAdmissionNoticeFile(fields)
+	//if err := os.Remove(outputPath); err != nil {
+	//	log.Println(err)
+	//}
+	//if err := os.Remove(pdfOutputPath); err != nil {
+	//	log.Println(err)
+	//}
+	//MakeAdmissionNoticeFile(templatePath, fields, outputPath)
+	//ConvertToPDF(outputPath, pdfOutputPath)
+	studentsPath := "D:/OneDrive/admission_notice/students.csv"
+	LoadStudents(studentsPath)
 }

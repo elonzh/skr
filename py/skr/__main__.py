@@ -9,6 +9,6 @@ if not __package__:
 
 
 if __name__ == "__main__":
-    from py.skr import cli
+    from skr.cli import cli
 
     cli()

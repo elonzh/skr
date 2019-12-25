@@ -36,33 +36,35 @@ class Link:
             "<!DOCTYPE NETSCAPE-Bookmark-file-1>"
             "<!-- This is an automatically generated file.\n"
             "     It will be read and overwritten.\n"
-            "     DO NOT EDIT! -->"
-            '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">'
-            "<TITLE>Bookmarks</TITLE>"
-            "<H1>Bookmarks</H1>"
+            "     DO NOT EDIT! -->\n"
+            '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n'
+            "<TITLE>Bookmarks</TITLE>\n"
+            "<H1>Bookmarks</H1>\n"
         )
         timestamp = int(time.time())
 
-        def _to_bookmark(link):
+        def _to_bookmark(link, depth=1):
             if link.children:
                 return (
-                    '<DT><H3 ADD_DATE="{timestamp}" LAST_MODIFIED="{timestamp}">{title}</H3>'
-                    "<DL><p>"
-                    "{children}"
-                    "</DL><p>".format(
+                    '{indent}<DT><H3 ADD_DATE="{timestamp}" LAST_MODIFIED="{timestamp}">{title}</H3>\n'
+                    "{indent}<DL><p>\n"
+                    "{children}\n"
+                    "{indent}</DL><p>".format(
+                        indent=" " * 4 * depth,
                         timestamp=timestamp,
                         title=link.title,
-                        children="".join([_to_bookmark(l) for l in link.children]),
+                        children="\n".join([_to_bookmark(l, depth + 1) for l in link.children]),
                     )
                 )
-            return '<DT><A HREF="{url}" ADD_DATE="{timestamp}" LAST_MODIFIED="{timestamp}">{title}</A>'.format(
+            return '{indent}<DT><A HREF="{url}" ADD_DATE="{timestamp}" LAST_MODIFIED="{timestamp}">{title}</A>'.format(
+                indent=" " * 4 * depth,
                 timestamp=timestamp,
                 url=html.escape(link.url),
                 title=html.escape(link.title),
             )
 
-        return header + "<DL><p>{children}</DL>".format(
-            children="".join([_to_bookmark(l) for l in self.children])
+        return header + "<DL><p>\n{children}\n</DL>".format(
+            children="\n".join([_to_bookmark(l) for l in self.children])
         )
 
 

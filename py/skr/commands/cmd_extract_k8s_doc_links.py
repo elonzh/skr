@@ -1,9 +1,10 @@
-import click
 import html
-import requests
 import time
-from bs4 import BeautifulSoup, SoupStrainer
 from urllib.parse import urljoin
+
+import click
+import requests
+from bs4 import BeautifulSoup, SoupStrainer
 
 
 class Link:
@@ -23,9 +24,14 @@ class Link:
     def __str__(self):
         def pretty():
             for depth, parent, root in self.walk():
-                link_str = "{space} - [{title}]({url})".format(
-                    space="    " * depth, title=root.title, url=root.url
-                )
+                if root.url:
+                    link_str = "{space} - [{title}]({url})".format(
+                        space="    " * depth, title=root.title, url=root.url
+                    )
+                else:
+                    link_str = "{space} - {title}".format(
+                        space="    " * depth, title=root.title, url=root.url
+                    )
                 yield link_str
 
         return "\n".join(pretty())

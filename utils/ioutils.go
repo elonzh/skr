@@ -19,14 +19,12 @@ func CopyFile(dst, src string, perm os.FileMode) error {
 		return err
 	}
 	_, err = io.Copy(tmp, in)
+	if err != nil {
+		return err
+	}
 	tmp.Close()
 	if err = os.Chmod(tmp.Name(), perm); err != nil {
-		os.Remove(tmp.Name())
-		if err != nil {
-			os.Remove(tmp.Name())
-			return err
-		}
-		if err = tmp.Close(); err != nil {
+		if err := tmp.Close(); err != nil {
 			os.Remove(tmp.Name())
 			return err
 		}

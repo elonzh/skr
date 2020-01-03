@@ -3,13 +3,14 @@
 """
 import json
 import os
-import requests
 import subprocess
 import time
 from datetime import datetime
 
-ENCODING = 'utf8'
-PROJECT_URL = 'https://github.com/earlzo/idy'
+import requests
+
+ENCODING = "utf8"
+PROJECT_URL = "https://github.com/elonzh/skr"
 
 
 def render_msg(user, history=None):
@@ -29,55 +30,46 @@ def render_msg(user, history=None):
             "> 喜欢数: {user[LikedNumStr]:>7}\n".format(user=user)
         )
     else:
-        updated_at = datetime.fromtimestamp(history['UpdatedAt'])
+        updated_at = datetime.fromtimestamp(history["UpdatedAt"])
         sentences = [
             "#### @所有人, 今天 **{user[NickName]}** 涨粉了吗?\n"
             "自 {updated_at}, TA(ID: {user[ID]}) 的数据变化如下:\n".format(
-                updated_at=updated_at.strftime('%m-%e %H:%M'),
-                user=user,
-            ),
+                updated_at=updated_at.strftime("%m-%e %H:%M"), user=user
+            )
         ]
         for name, num_key, num_str_key in (
-                ("关注数", "FocusNum", "FocusNumStr"),
-                ("粉丝数", "FollowerNum", "FollowerNumStr"),
-                ("点赞数", "LikesNum", "LikesNumStr"),
-                ("作品数", "PostNum", "PostNumStr"),
-                ("喜欢数", "LikedNum", "LikedNumStr"),
+            ("关注数", "FocusNum", "FocusNumStr"),
+            ("粉丝数", "FollowerNum", "FollowerNumStr"),
+            ("点赞数", "LikesNum", "LikesNumStr"),
+            ("作品数", "PostNum", "PostNumStr"),
+            ("喜欢数", "LikedNum", "LikedNumStr"),
         ):
             changes = user[num_key] - history[num_key]
             if changes > 0:
-                symbol = '🔺'
+                symbol = "🔺"
             elif changes < 0:
-                symbol = '🔻'
+                symbol = "🔻"
             else:
-                symbol = '➖'
+                symbol = "➖"
             sentences.append(
                 "> {name}: {num_str:<7} {symbol} {changes}\n".format(
                     name=name, num_str=user[num_str_key], symbol=symbol, changes=changes
                 )
             )
-            text = '\n'.join(sentences)
+            text = "\n".join(sentences)
     return {
         "msgtype": "actionCard",
         "actionCard": {
-            "title": user['NickName'] + ' 涨粉了吗?',
+            "title": user["NickName"] + " 涨粉了吗?",
             "text": text,
             "hideAvatar": "true",
             "btnOrientation": "1",
             "btns": [
-                {
-                    "title": "💃 查看详情",
-                    "actionURL": user['URL']
-                },
-                {
-                    "title": "🌟 Star",
-                    "actionURL": PROJECT_URL
-                },
-            ]
+                {"title": "💃 查看详情", "actionURL": user["URL"]},
+                {"title": "🌟 Star", "actionURL": PROJECT_URL},
+            ],
         },
-        "at": {
-            "isAtAll": "true"
-        }
+        "at": {"isAtAll": "true"},
     }
 
 
@@ -87,44 +79,46 @@ def main(config_path, user_histories_path):
     # 读取配置文件
     with open(config_path) as fp:
         config = json.load(fp)
-    idy_path = config.get('idy_path', './idy')
-    url_configs = config.get('url_configs', {})
-    # 生成 idy 命令行参数
-    args = [idy_path, '--silent']
+    skr_path = config.get("skr_path", "./skr")
+    url_configs = config.get("url_configs", {})
+    # 生成 skr 命令行参数
+    args = [skr_path, "douyin", "--silent"]
     for url in url_configs:
-        args.append('-u')
+        args.append("-u")
         args.append(url)
-    # 调用 idy 获取数据
+    # 调用 skr 获取数据
     ret = subprocess.check_output(args)
     users = json.loads(ret)
     # 历史数据
     user_histories = {}
     new_user_histories = {}
     if os.path.exists(user_histories_path):
-        with open(user_histories_path, 'rt', encoding=ENCODING) as fp:
+        with open(user_histories_path, "rt", encoding=ENCODING) as fp:
             user_histories = json.load(fp)
     # 使用钉钉机器人发送消息
     session = requests.Session()
     for user in users:
-        print('开始处理 User[NickName:{user[NickName]}, ID:{user[ID]}]'.format(user=user))
-        user['UpdatedAt'] = time.time()
-        new_user_histories[user['ID']] = user
+        print("开始处理 User[NickName:{user[NickName]}, ID:{user[ID]}]".format(user=user))
+        user["UpdatedAt"] = time.time()
+        new_user_histories[user["ID"]] = user
 
-        web_hook_urls = url_configs.get(user['URL'])
+        web_hook_urls = url_configs.get(user["URL"])
         if not web_hook_urls:
             continue
         for url in web_hook_urls:
-            res = session.post(url, json=render_msg(user, user_histories.get(user['ID'])))
-            print('消息发送结束:', url, ',', res.json())
+            res = session.post(
+                url, json=render_msg(user, user_histories.get(user["ID"]))
+            )
+            print("消息发送结束:", url, ",", res.json())
 
-    with open(user_histories_path, 'wt', encoding=ENCODING) as fp:
+    with open(user_histories_path, "wt", encoding=ENCODING) as fp:
         json.dump(new_user_histories, fp, ensure_ascii=False, indent=2)
-    print('新的历史纪录导出成功')
+    print("新的历史纪录导出成功")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # 配置文件路径
     config_path = "config.json"
     # 历史数据路径
-    user_histories_path = 'user_histories.json'
+    user_histories_path = "user_histories.json"
     main(config_path, user_histories_path)

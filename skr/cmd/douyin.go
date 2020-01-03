@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/earlzo/skr/douyin"
+	"github.com/elonzh/skr/douyin"
 )
 
 func newDouyinCommand(v *viper.Viper) *cobra.Command {

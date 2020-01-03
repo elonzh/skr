@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/earlzo/skr/utils"
+	"github.com/elonzh/skr/utils"
 )
 
 func newExportWindowsFocusPic(v *viper.Viper) *cobra.Command {

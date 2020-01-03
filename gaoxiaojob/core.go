@@ -9,12 +9,14 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/earlzo/colly-bolt-storage/colly/bolt"
+	"github.com/elonzh/colly-bolt-storage/colly/bolt"
 	"github.com/gocolly/colly"
 	"github.com/sirupsen/logrus"
 
-	"github.com/earlzo/skr/dingtalk"
-	"github.com/earlzo/skr/utils"
+	"go.etcd.io/bbolt"
+
+	"github.com/elonzh/skr/dingtalk"
+	"github.com/elonzh/skr/utils"
 )
 
 var URL = url.URL{
@@ -40,9 +42,15 @@ func FetchJobs(storageFilename string) []*Job {
 	jobListCollector := colly.NewCollector(options...)
 	options = append(options, colly.Async(true))
 	jobCollector := colly.NewCollector(options...)
-	storage := &bolt.Storage{
-		Path: storageFilename,
+
+	var (
+		db  *bbolt.DB
+		err error
+	)
+	if db, err = bbolt.Open(storageFilename, 0666, nil); err != nil {
+		panic(err)
 	}
+	storage := bolt.NewStorage(db)
 	if err := jobCollector.SetStorage(storage); err != nil {
 		panic(err)
 	}
@@ -99,7 +107,7 @@ func FetchJobs(storageFilename string) []*Job {
 		defer mut.Unlock()
 		jobs = append(jobs, &job)
 	})
-	err := jobListCollector.Visit(URL.String())
+	err = jobListCollector.Visit(URL.String())
 	if err != nil {
 		logrus.WithError(err).WithField("JobListURL", URL.String()).Panicln("error when visit job list url")
 	}
@@ -113,7 +121,7 @@ func FilterJobs(jobs []*Job, keywords []string) []*Job {
 	}
 	var filteredJobs []*Job
 	for _, job := range jobs {
-		text := strings.Join(append(job.Provinces, append(job.Locations, append(job.Categories, append(job.Subjects)...)...)...), " ")
+		text := strings.Join(append(job.Provinces, append(job.Locations, append(job.Categories, job.Subjects...)...)...), " ")
 		for _, keyword := range keywords {
 			if strings.Contains(text, keyword) {
 				filteredJobs = append(filteredJobs, job)

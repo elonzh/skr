@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/earlzo/skr/gaoxiaojob"
+	"github.com/elonzh/skr/gaoxiaojob"
 )
 
 func newGaoxiaoJobCommand(v *viper.Viper) *cobra.Command {

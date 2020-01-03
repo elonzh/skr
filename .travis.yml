@@ -5,10 +5,10 @@ env:
   - GO111MODULE=on CODECOV_TOKEN="66c8a45b-83f0-46aa-985b-8ba0aa2149cd"
 go:
   - 1.x
-go_import_path: github.com/earlzo/skr
+go_import_path: github.com/elonzh/skr
 
 install:
-  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
+  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.22.2
 script:
   - golangci-lint run
   - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...

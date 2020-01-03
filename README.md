@@ -1,4 +1,4 @@
-# skr ![Tag](https://img.shields.io/github/tag/earlzo/skr.svg?style=flat-square) [![GolangCI](https://golangci.com/badges/github.com/earlzo/skr.svg)]() [![Build Status](https://img.shields.io/travis/earlzo/skr.svg?style=flat-square)](https://travis-ci.org/earlzo/skr)
+# skr ![Tag](https://img.shields.io/github/tag/elonzh/skr.svg?style=flat-square) [![GolangCI](https://golangci.com/badges/github.com/elonzh/skr.svg)]() [![Build Status](https://img.shields.io/travis/elonzh/skr.svg?style=flat-square)](https://travis-ci.org/elonzh/skr)
 
 一组脚本。
 
@@ -33,7 +33,7 @@ Windows 可以使用计划任务进行设置
 ## douyin
 
 ```text
-$skr douyin --help 
+$skr douyin --help
 爱抖音小助手, 它能帮你解析抖音名片数据
 
 Usage:
@@ -55,4 +55,4 @@ Flags:
 
 # License
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fearlzo%2Fskr.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fearlzo%2Fskr?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Felonzh%2Fskr.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Felonzh%2Fskr?ref=badge_large)

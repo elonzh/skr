@@ -3,6 +3,7 @@ module github.com/elonzh/skr
 go 1.12
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/andybalholm/cascadia v1.1.0 // indirect
 	github.com/antchfx/htmlquery v1.2.1 // indirect
@@ -15,7 +16,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/pelletier/go-toml v1.6.0 // indirect; indirectist
 	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.5.1 // indirect
 	github.com/sirupsen/logrus v1.4.2
@@ -29,7 +30,7 @@ require (
 	go.etcd.io/bbolt v1.3.3
 	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52 // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
-	golang.org/x/sys v0.0.0-20200102141924-c96a22e43c9c // indirect
+	golang.org/x/sys v0.0.0-20200107162124-548cf772de50 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ini.v1 v1.51.1 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect

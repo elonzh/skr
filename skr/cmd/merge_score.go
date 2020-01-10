@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -26,8 +27,12 @@ type StudentSubjectScore struct {
 	X, Y  int
 }
 
+func (s *StudentSubjectScore) GetAxis() string {
+	return PointToAxis(s.X, s.Y)
+}
+
 func (s *StudentSubjectScore) String() string {
-	return fmt.Sprintf("score %.2f at %s", s.Score, PointToAxis(s.X, s.Y))
+	return fmt.Sprintf("score %.2f at %s", s.Score, s.GetAxis())
 }
 
 type ScoreTable struct {
@@ -37,11 +42,11 @@ type ScoreTable struct {
 }
 
 func (t *ScoreTable) String() string {
-	return fmt.Sprintf("%s\n%s", t.file.Path, t.ScoreMap)
+	return fmt.Sprintf("%s\n%v", t.file.Path, t.ScoreMap)
 }
 
 func PointToAxis(x, y int) string {
-	return fmt.Sprintf("%s%d", MustColumnNumberToName(y), y)
+	return fmt.Sprintf("%s%d", MustColumnNumberToName(y), x)
 }
 func MustColumnNumberToName(num int) string {
 	name, err := excelize.ColumnNumberToName(num)
@@ -60,7 +65,8 @@ func MustColumnNumberToName(num int) string {
 func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 	logrus.WithFields(logrus.Fields{
 		"SheetMap": file.GetSheetMap(),
-	}).Debugln()
+		"Path":     file.Path,
+	}).Debugln("开始加载数据")
 	rows, err := file.GetRows(file.GetSheetMap()[1])
 	if err != nil {
 		return nil, err
@@ -81,7 +87,7 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 	}
 	const subjectNameIndexOffset = 3
 	for rowIndex, row := range rows[1:] {
-		x := rowIndex + skipRows + 1
+		x := rowIndex + skipRows + 1 + 1
 		className := strings.TrimSpace(row[2])
 		studentName := strings.TrimSpace(row[1])
 		if className == "" || studentName == "" {
@@ -93,8 +99,8 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 			continue
 		}
 		for subjectNameIndex, rawScoreStr := range row[3:] {
-			y := subjectNameIndex + subjectNameIndexOffset
-			subjectName := headers[y]
+			y := subjectNameIndex + subjectNameIndexOffset + 1
+			subjectName := headers[y-1]
 			if subjectName == "" {
 				logrus.WithFields(logrus.Fields{
 					"行":  x,
@@ -124,7 +130,7 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 					"分数数据": rawScoreStr,
 				}).Warnln("分数数据为空")
 			} else {
-				rawScore, err := strconv.ParseFloat(rawScoreStr, 1)
+				rawScore, err := strconv.ParseFloat(rawScoreStr, 64)
 				if err != nil {
 					logrus.WithFields(logrus.Fields{
 						"行":    x,
@@ -164,15 +170,54 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 	if len(scoreFilePaths) == 0 {
 		return errors.New("should provide at least one scoreFilePath")
 	}
-	f, err := excelize.OpenFile(resultFilePath)
+	const skipRows = 2
+
+	file, err := excelize.OpenFile(resultFilePath)
 	if err != nil {
 		return err
 	}
-	t, err := LoadScoreTable(f, 2)
+	t, err := LoadScoreTable(file, skipRows)
 	if err != nil {
 		return err
 	}
-	fmt.Println(t)
+	sheetName := file.GetSheetName(1)
+
+	scoreTables := make([]*ScoreTable, 0, len(scoreFilePaths))
+	for _, scoreFilePath := range scoreFilePaths {
+		file, err := excelize.OpenFile(scoreFilePath)
+		if err != nil {
+			return err
+		}
+		t, err := LoadScoreTable(file, skipRows)
+		if err != nil {
+			return err
+		}
+		scoreTables = append(scoreTables, t)
+	}
+
+	for subject, score := range t.ScoreMap {
+		for _, scoreTable := range scoreTables {
+			realScore, ok := scoreTable.ScoreMap[subject]
+			if ok && realScore.Score != -1 {
+				s := StudentSubjectScore{
+					Score: realScore.Score,
+					X:     score.X,
+					Y:     score.Y,
+				}
+				t.ScoreMap[subject] = s
+				if err := file.SetCellFloat(sheetName, s.GetAxis(), s.Score, 2, 64); err != nil {
+					logrus.WithError(err).Warningln("分数设置错误")
+				}
+				break
+			}
+		}
+	}
+	outputPath := "已汇总-" + file.Path
+	err = file.SaveAs(outputPath)
+	if err != nil {
+		return err
+	}
+	logrus.WithField("汇总表位置", outputPath).Info("成绩汇总完成")
 	return nil
 }
 
@@ -188,9 +233,16 @@ func newMergeScoreCommand(v *viper.Viper) *cobra.Command {
 		},
 	}
 	resultFilePathFlag := "resultFilePath"
-	cmd.Flags().StringVarP(&resultFilePath, resultFilePathFlag, "p", "", "成绩汇总表")
-	cmd.MarkFlagRequired(resultFilePathFlag)
-	cmd.MarkFlagFilename(resultFilePathFlag, "xlsx")
+	cmd.Flags().StringVarP(&resultFilePath, resultFilePathFlag, "p", "", "成绩汇总表路径, 成绩汇总表必须提供所有学生的姓名, 班级和科目信息")
+
+	err := cmd.MarkFlagRequired(resultFilePathFlag)
+	if err != nil {
+		panic(err)
+	}
+	err = cmd.MarkFlagFilename(resultFilePathFlag, "xlsx")
+	if err != nil {
+		panic(err)
+	}
 	return cmd
 }
 

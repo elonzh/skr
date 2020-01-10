@@ -15,8 +15,8 @@ import (
 
 	"go.etcd.io/bbolt"
 
-	"github.com/elonzh/skr/dingtalk"
-	"github.com/elonzh/skr/utils"
+	"github.com/elonzh/skr/pkg/dingtalk"
+	"github.com/elonzh/skr/pkg/utils"
 )
 
 var URL = url.URL{

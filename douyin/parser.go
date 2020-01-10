@@ -105,14 +105,14 @@ func numStr2num(numStr string) uint {
 
 // Parse 解析抖音用户名片数据
 func Parse(doc *goquery.Document, user *User) {
-	//doc.Find(".shortid .iconfont").Each(func(i int, s *goquery.Selection) {
+	// doc.Find(".shortid .iconfont").Each(func(i int, s *goquery.Selection) {
 	//	t := strings.Replace(s.Text(), " ", "", -1)
 	//	for _, r := range t {
 	//		user.IdRunes = append(user.IdRunes, r)
 	//		// fmt.Printf("%+q %d\n", r, user.IDs[i])
 	//		// fmt.Println(id[i], idx, id[i] == rune_map[r], id[i] == num_map[idx])
 	//	}
-	//})
+	// })
 
 	userInfoDoc := doc.Find("#pagelet-user-info").First()
 	personalCard := userInfoDoc.Find(".personal-card").First()

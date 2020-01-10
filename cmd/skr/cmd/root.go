@@ -7,13 +7,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/elonzh/skr/pkg/utils"
 )
 
 var (
 	cfgFile = ""
 	rootCmd = &cobra.Command{
 		Use:   "skr",
-		Short: "🏁  skr~ skr~",
+		Short: "🏁 skr~ skr~",
 	}
 	v = viper.GetViper()
 )
@@ -26,7 +28,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig, initLogger, func() {
-		NormalizeAll(rootCmd)
+		utils.NormalizeAll(rootCmd)
 	})
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "配置文件路径")
 

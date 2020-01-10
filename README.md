@@ -3,6 +3,45 @@
 一组脚本。
 
 
+## Skr
+
+```shell
+🏁 skr~ skr~
+
+Usage:
+  skr [command]
+
+Available Commands:
+  douyin      解析抖音名片数据
+  gaoxiaojob  抓取 高校人才网(http://gaoxiaojob.com/) 的最近招聘信息并根据关键词推送至钉钉
+  help        Help about any command
+  merge_score 合并学生成绩单
+
+Flags:
+  -c, --config string      配置文件路径
+  -h, --help               help for skr
+      --log-level uint32    (default 4)
+
+Use "skr [command] --help" for more information about a command.
+```
+
+## douyin
+
+```text
+$skr douyin --help
+爱抖音小助手, 它能帮你解析抖音名片数据
+
+Usage:
+  skr douyin [flags]
+
+Flags:
+  -c, --config string   配置文件路径(默认为 config.yaml)
+  -h, --help            help for douyin
+      --silent          静默模式, 只在出错时输出日志
+  -u, --urls strings    抖音分享链接
+      --version         version for douyin
+```
+
 ## gaoxiaojob
 
 ```text
@@ -30,22 +69,6 @@ macOS, Linux 系统可以使用 crontab 进行定时执行, 例如
 
 Windows 可以使用计划任务进行设置
 
-## douyin
-
-```text
-$skr douyin --help
-爱抖音小助手, 它能帮你解析抖音名片数据
-
-Usage:
-  skr douyin [flags]
-
-Flags:
-  -c, --config string   配置文件路径(默认为 config.yaml)
-  -h, --help            help for douyin
-      --silent          静默模式, 只在出错时输出日志
-  -u, --urls strings    抖音分享链接
-      --version         version for douyin
-```
 
 ### 示例
 

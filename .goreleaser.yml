@@ -1,25 +1,26 @@
+# https://goreleaser.com/customization/
 project_name: skr
-
+before:
+  hooks:
+    - go mod tidy
 builds:
-  - goos:
+  - env:
+      - CGO_ENABLED=0
+    goos:
       - linux
       - darwin
       - windows
     goarch:
       - amd64
     main: ./cmd/skr/main.go
-    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
-    binary: skr
-    lang: go
 
-archive:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm
-    }}v{{ .Arm }}{{ end }}'
-  format: tar.gz
-  files:
-    - LICENSE*
-    - README*
-    - CHANGELOG*
+archives:
+  - format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE*
+      - README*
 
 release:
   # Repo in which the release will be created.

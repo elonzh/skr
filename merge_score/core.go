@@ -2,6 +2,8 @@ package merge_score
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -129,7 +131,7 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 	if err != nil {
 		return err
 	}
-	t, err := LoadScoreTable(file, skipRows)
+	resultScoreTable, err := LoadScoreTable(file, skipRows)
 	if err != nil {
 		return err
 	}
@@ -137,18 +139,43 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 
 	scoreTables := make([]*ScoreTable, 0, len(scoreFilePaths))
 	for _, scoreFilePath := range scoreFilePaths {
-		file, err := excelize.OpenFile(scoreFilePath)
+		fileInfo, err := os.Stat(scoreFilePath)
 		if err != nil {
 			return err
 		}
-		t, err := LoadScoreTable(file, skipRows)
-		if err != nil {
-			return err
+		if fileInfo.IsDir() {
+			err := filepath.Walk(scoreFilePath, func(path string, info os.FileInfo, err error) error {
+				if err != nil || info.IsDir() {
+					return err
+				}
+				file, err := excelize.OpenFile(path)
+				if err != nil {
+					return err
+				}
+				t, err := LoadScoreTable(file, skipRows)
+				if err != nil {
+					return err
+				}
+				scoreTables = append(scoreTables, t)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			file, err := excelize.OpenFile(scoreFilePath)
+			if err != nil {
+				return err
+			}
+			t, err := LoadScoreTable(file, skipRows)
+			if err != nil {
+				return err
+			}
+			scoreTables = append(scoreTables, t)
 		}
-		scoreTables = append(scoreTables, t)
 	}
 
-	for subject, score := range t.ScoreMap {
+	for subject, score := range resultScoreTable.ScoreMap {
 		for _, scoreTable := range scoreTables {
 			realScore, ok := scoreTable.ScoreMap[subject]
 			if ok && realScore.Score != -1 {
@@ -157,7 +184,7 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 					X:     score.X,
 					Y:     score.Y,
 				}
-				t.ScoreMap[subject] = s
+				resultScoreTable.ScoreMap[subject] = s
 				if err := file.SetCellFloat(sheetName, s.GetAxis(), s.Score, 2, 64); err != nil {
 					logrus.WithError(err).Warningln("分数设置错误")
 				}
@@ -165,7 +192,11 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 			}
 		}
 	}
-	outputPath := "已汇总-" + file.Path
+	filePath, err := filepath.Abs(file.Path)
+	if err != nil {
+		panic(err)
+	}
+	outputPath := filepath.Join(filepath.Dir(filePath), "已汇总-"+filepath.Base(filePath))
 	err = file.SaveAs(outputPath)
 	if err != nil {
 		return err

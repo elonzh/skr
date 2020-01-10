@@ -1,4 +1,4 @@
-package cmd
+package winfocus
 
 import (
 	"os"
@@ -7,11 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/elonzh/skr/utils"
 )
 
-func newExportWindowsFocusPic(v *viper.Viper) *cobra.Command {
+func NewCommand(v *viper.Viper) *cobra.Command {
 	currentDir, err := filepath.Abs("")
 	if err != nil {
 		logrus.WithError(err).Fatalln()
@@ -36,7 +34,7 @@ func newExportWindowsFocusPic(v *viper.Viper) *cobra.Command {
 				}
 				filename := info.Name() + ".jpg"
 				dst := filepath.Join(outputDir, filename)
-				err = utils.CopyFile(dst, path, 0666)
+				err = pkg.CopyFile(dst, path, 0666)
 				if err != nil {
 					logrus.WithError(err).WithFields(logrus.Fields{
 						"src": path,
@@ -49,8 +47,4 @@ func newExportWindowsFocusPic(v *viper.Viper) *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&outputDir, "output", "o", outputDir, "导出路径")
 	return cmd
-}
-
-func init() {
-	rootCmd.AddCommand(newExportWindowsFocusPic(v))
 }

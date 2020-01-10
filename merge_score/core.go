@@ -1,60 +1,13 @@
-package cmd
+package merge_score
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
-
-type StudentSubject struct {
-	ClassName   string
-	StudentName string
-	SubjectName string
-}
-
-func (s *StudentSubject) String() string {
-	return fmt.Sprintf("%s %s %s", s.ClassName, s.StudentName, s.SubjectName)
-}
-
-type StudentSubjectScore struct {
-	Score float64
-	X, Y  int
-}
-
-func (s *StudentSubjectScore) GetAxis() string {
-	return PointToAxis(s.X, s.Y)
-}
-
-func (s *StudentSubjectScore) String() string {
-	return fmt.Sprintf("score %.2f at %s", s.Score, s.GetAxis())
-}
-
-type ScoreTable struct {
-	file     *excelize.File
-	SkipRows int
-	ScoreMap map[StudentSubject]StudentSubjectScore
-}
-
-func (t *ScoreTable) String() string {
-	return fmt.Sprintf("%s\n%v", t.file.Path, t.ScoreMap)
-}
-
-func PointToAxis(x, y int) string {
-	return fmt.Sprintf("%s%d", MustColumnNumberToName(y), x)
-}
-func MustColumnNumberToName(num int) string {
-	name, err := excelize.ColumnNumberToName(num)
-	if err != nil {
-		panic(err)
-	}
-	return name
-}
 
 //  数据表样例如下:
 //   ___________________________________________________
@@ -219,33 +172,4 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 	}
 	logrus.WithField("汇总表位置", outputPath).Info("成绩汇总完成")
 	return nil
-}
-
-func newMergeScoreCommand(v *viper.Viper) *cobra.Command {
-	var resultFilePath string
-	cmd := &cobra.Command{
-		Use:     "merge_score",
-		Short:   "合并学生成绩单",
-		Version: "v20200108",
-		Args:    cobra.MinimumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return MergeScore(resultFilePath, args...)
-		},
-	}
-	resultFilePathFlag := "resultFilePath"
-	cmd.Flags().StringVarP(&resultFilePath, resultFilePathFlag, "p", "", "成绩汇总表路径, 成绩汇总表必须提供所有学生的姓名, 班级和科目信息")
-
-	err := cmd.MarkFlagRequired(resultFilePathFlag)
-	if err != nil {
-		panic(err)
-	}
-	err = cmd.MarkFlagFilename(resultFilePathFlag, "xlsx")
-	if err != nil {
-		panic(err)
-	}
-	return cmd
-}
-
-func init() {
-	rootCmd.AddCommand(newMergeScoreCommand(v))
 }

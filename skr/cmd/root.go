@@ -25,7 +25,9 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initLogger)
+	cobra.OnInitialize(initConfig, initLogger, func() {
+		NormalizeAll(rootCmd)
+	})
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "配置文件路径")
 
 	var (

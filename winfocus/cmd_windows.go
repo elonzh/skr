@@ -7,6 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/elonzh/skr/pkg/utils"
 )
 
 func NewCommand(v *viper.Viper) *cobra.Command {
@@ -34,7 +36,7 @@ func NewCommand(v *viper.Viper) *cobra.Command {
 				}
 				filename := info.Name() + ".jpg"
 				dst := filepath.Join(outputDir, filename)
-				err = pkg.CopyFile(dst, path, 0666)
+				err = utils.CopyFile(dst, path, 0666)
 				if err != nil {
 					logrus.WithError(err).WithFields(logrus.Fields{
 						"src": path,

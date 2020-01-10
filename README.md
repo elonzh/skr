@@ -2,9 +2,6 @@
 
 一组脚本。
 
-
-## Skr
-
 ```shell
 🏁 skr~ skr~
 
@@ -15,7 +12,7 @@ Available Commands:
   douyin      解析抖音名片数据
   gaoxiaojob  抓取 高校人才网(http://gaoxiaojob.com/) 的最近招聘信息并根据关键词推送至钉钉
   help        Help about any command
-  merge_score 合并学生成绩单
+  winfocus    导出 Windows 聚焦图片
 
 Flags:
   -c, --config string      配置文件路径
@@ -25,7 +22,7 @@ Flags:
 Use "skr [command] --help" for more information about a command.
 ```
 
-## douyin
+## douyin, 爱抖音小助手, 它能帮你解析抖音名片数据
 
 ```text
 $skr douyin --help
@@ -42,7 +39,11 @@ Flags:
       --version         version for douyin
 ```
 
-## gaoxiaojob
+### 示例
+
+- [今天涨粉了吗?](examples/今天涨粉了吗)
+
+## gaoxiaojob, 抓取 高校人才网(http://gaoxiaojob.com/) 的最近招聘信息并根据关键词推送至钉钉
 
 ```text
 $skr gaoxiaojob --help
@@ -69,12 +70,24 @@ macOS, Linux 系统可以使用 crontab 进行定时执行, 例如
 
 Windows 可以使用计划任务进行设置
 
+## winfocus, 导出 Windows 聚焦图片(仅限 Windows 10)
 
-### 示例
+```shell script
+$skr winfocus --help
+导出 Windows 聚焦图片
 
-- [今天涨粉了吗?](examples/今天涨粉了吗)
+Usage:
+  skr winfocus [flags]
 
-> [查看更多示例](examples)
+Flags:
+  -h, --help            help for winfocus
+  -o, --output string   导出路径 (default "D:\\proj\\skr\\Windows Focus")
+      --version         version for winfocus
+
+Global Flags:
+  -c, --config string      配置文件路径
+      --log-level uint32    (default 4)
+```
 
 # License
 

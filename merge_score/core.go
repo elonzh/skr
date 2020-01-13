@@ -10,6 +10,8 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/sirupsen/logrus"
+
+	"github.com/elonzh/skr/pkg/utils"
 )
 
 const (
@@ -22,7 +24,7 @@ const (
 // 2|    学生信息      |  语言课程分数   |  专业课程分数   |
 // 3| 序号 姓名 语言班 | 语言课1 语言课2 | 专业课1 专业课2 |
 //     A   B     C       D      E         F      G
-func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
+func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 	logrus.WithFields(logrus.Fields{
 		"SheetMap": file.GetSheetMap(),
 		"Path":     file.Path,
@@ -47,7 +49,10 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 	}
 	const subjectNameIndexOffset = 3
 	for rowIndex, row := range rows[1:] {
-		x := rowIndex + skipRows + 1 + 1
+		if len(row) > len(headers) {
+			row = row[:len(headers)]
+		}
+		x := rowIndex + int(skipRows) + 1 + 1
 		className := strings.TrimSpace(row[2])
 		studentName := strings.TrimSpace(row[1])
 		if className == "" || studentName == "" {
@@ -58,7 +63,7 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 			}).Warnln("学生信息缺失, 跳过该行")
 			continue
 		}
-		for subjectNameIndex, rawScoreStr := range row[3:] {
+		for subjectNameIndex, rawScoreStr := range row[subjectNameIndexOffset:] {
 			y := subjectNameIndex + subjectNameIndexOffset + 1
 			subjectName := headers[y-1]
 			if subjectName == "" {
@@ -77,9 +82,9 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 					StudentName: studentName,
 					SubjectName: headers[subjectNameIndex+subjectNameIndexOffset],
 				}] = StudentSubjectScore{
-					Score: -1,
-					X:     x,
-					Y:     y,
+					ScoreData: "",
+					X:         x,
+					Y:         y,
 				}
 				logrus.WithFields(logrus.Fields{
 					"行":    x,
@@ -90,42 +95,30 @@ func LoadScoreTable(file *excelize.File, skipRows int) (*ScoreTable, error) {
 					"分数数据": rawScoreStr,
 				}).Warnln("分数数据为空")
 			} else {
-				rawScore, err := strconv.ParseFloat(rawScoreStr, 64)
-				if err != nil {
-					logrus.WithFields(logrus.Fields{
-						"行":    x,
-						"列":    MustColumnNumberToName(y),
-						"班级":   className,
-						"学生":   studentName,
-						"科目":   subjectName,
-						"分数数据": rawScoreStr,
-					}).Warnln("错误的分数数据, 跳过该列")
-				} else {
-					t.ScoreMap[StudentSubject{
-						ClassName:   className,
-						StudentName: studentName,
-						SubjectName: subjectName,
-					}] = StudentSubjectScore{
-						Score: rawScore,
-						X:     x,
-						Y:     y,
-					}
-					logrus.WithFields(logrus.Fields{
-						"行":    x,
-						"列":    MustColumnNumberToName(y),
-						"班级":   className,
-						"学生":   studentName,
-						"科目":   subjectName,
-						"分数数据": rawScoreStr,
-					}).Infoln("分数加载成功")
+				t.ScoreMap[StudentSubject{
+					ClassName:   className,
+					StudentName: studentName,
+					SubjectName: subjectName,
+				}] = StudentSubjectScore{
+					ScoreData: rawScoreStr,
+					X:         x,
+					Y:         y,
 				}
+				logrus.WithFields(logrus.Fields{
+					"行":    x,
+					"列":    MustColumnNumberToName(y),
+					"班级":   className,
+					"学生":   studentName,
+					"科目":   subjectName,
+					"分数数据": rawScoreStr,
+				}).Infoln("分数加载成功")
 			}
 		}
 	}
 	return t, nil
 }
 
-func LoadScoreTableFromPath(path string, skipRows int) (*ScoreTable, error) {
+func LoadScoreTableFromPath(path string, skipRows uint32) (*ScoreTable, error) {
 	file, err := excelize.OpenFile(path)
 	if err != nil {
 		return nil, err
@@ -137,11 +130,10 @@ func LoadScoreTableFromPath(path string, skipRows int) (*ScoreTable, error) {
 	return t, nil
 }
 
-func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
+func MergeScore(resultFilePath string, scoreFilePaths []string, skipRows uint32) error {
 	if len(scoreFilePaths) == 0 {
 		return errors.New("should provide at least one scoreFilePath")
 	}
-	const skipRows = 2
 
 	file, err := excelize.OpenFile(resultFilePath)
 	if err != nil {
@@ -186,26 +178,30 @@ func MergeScore(resultFilePath string, scoreFilePaths ...string) error {
 	for subject, score := range resultScoreTable.ScoreMap {
 		for _, scoreTable := range scoreTables {
 			realScore, ok := scoreTable.ScoreMap[subject]
-			if ok && realScore.Score != -1 {
+			if ok && realScore.ScoreData != "" {
 				s := StudentSubjectScore{
-					Score: realScore.Score,
-					X:     score.X,
-					Y:     score.Y,
+					ScoreData: realScore.ScoreData,
+					X:         score.X,
+					Y:         score.Y,
 				}
 				resultScoreTable.ScoreMap[subject] = s
-				// 汇总成绩四舍五入保留整数
-				if err := file.SetCellInt(sheetName, s.GetAxis(), int(math.Round(s.Score))); err != nil {
-					logrus.WithError(err).Warningln("分数设置错误")
+				rawScore, err := strconv.ParseFloat(s.ScoreData, 64)
+				if err != nil {
+					if err := file.SetCellStr(sheetName, s.GetAxis(), s.ScoreData); err != nil {
+						logrus.WithError(err).Warningln("分数设置错误")
+					}
+					break
+				} else {
+					// 汇总成绩四舍五入保留整数
+					if err := file.SetCellInt(sheetName, s.GetAxis(), int(math.Round(rawScore))); err != nil {
+						logrus.WithError(err).Warningln("分数设置错误")
+					}
+					break
 				}
-				break
 			}
 		}
 	}
-	filePath, err := filepath.Abs(file.Path)
-	if err != nil {
-		panic(err)
-	}
-	outputPath := filepath.Join(filepath.Dir(filePath), "已汇总-"+filepath.Base(filePath))
+	outputPath := utils.PrefixedPath("已汇总-", file.Path)
 	err = file.SaveAs(outputPath)
 	if err != nil {
 		return err

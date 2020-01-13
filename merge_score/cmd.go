@@ -7,6 +7,7 @@ import (
 
 func NewCommand(_ *viper.Viper) *cobra.Command {
 	var resultFilePath string
+	var skipRows uint32
 	cmd := &cobra.Command{
 		Use:     "merge_score",
 		Version: "v20200108",
@@ -27,10 +28,11 @@ func NewCommand(_ *viper.Viper) *cobra.Command {
 			skr merge_score -p ".\2020第一学期成绩\2020传媒第一学期分数.xlsx" ".\2020第一学期成绩\专业\"  ".\2020第一学期成绩\语言\"`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return MergeScore(resultFilePath, args...)
+			return MergeScore(resultFilePath, args, skipRows)
 		},
 	}
 	resultFilePathFlag := "resultFilePath"
+	cmd.Flags().Uint32Var(&skipRows, "skipRows", 2, "跳过 N 行，从 N + 1 行处理")
 	cmd.Flags().StringVarP(&resultFilePath, resultFilePathFlag, "p", "", "成绩汇总表路径, 成绩汇总表必须提供所有学生的姓名, 班级和科目信息")
 
 	err := cmd.MarkFlagRequired(resultFilePathFlag)

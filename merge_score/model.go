@@ -17,8 +17,8 @@ func (s *StudentSubject) String() string {
 }
 
 type StudentSubjectScore struct {
-	Score float64
-	X, Y  int
+	ScoreData string
+	X, Y      int
 }
 
 func (s *StudentSubjectScore) GetAxis() string {
@@ -26,12 +26,12 @@ func (s *StudentSubjectScore) GetAxis() string {
 }
 
 func (s *StudentSubjectScore) String() string {
-	return fmt.Sprintf("score %.2f at %s", s.Score, s.GetAxis())
+	return fmt.Sprintf("score %s at %s", s.ScoreData, s.GetAxis())
 }
 
 type ScoreTable struct {
 	file     *excelize.File
-	SkipRows int
+	SkipRows uint32
 	ScoreMap map[StudentSubject]StudentSubjectScore
 }
 

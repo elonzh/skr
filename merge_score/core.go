@@ -2,6 +2,7 @@ package merge_score
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -38,8 +39,12 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 	for i, v := range headers {
 		headers[i] = strings.TrimSpace(v)
 	}
-	if len(headers) <= 4 {
-		logrus.Warnln("列数小于 4 列，是不是没有数据？")
+	if len(headers) < 4 {
+		logrus.WithFields(logrus.Fields{
+			"文件": file.Path,
+			"表头": headers,
+		}).Errorln("列数小于 4 列，是不是没有数据？")
+		return nil, fmt.Errorf(`文件 "%s" 列数小于 4 列，是不是没有数据？表头: %v`, file.Path, headers)
 	}
 
 	t := &ScoreTable{
@@ -57,6 +62,7 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 		studentName := strings.TrimSpace(row[1])
 		if className == "" || studentName == "" {
 			logrus.WithFields(logrus.Fields{
+				"文件": file.Path,
 				"行":  x,
 				"班级": className,
 				"学生": studentName,
@@ -68,6 +74,7 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 			subjectName := headers[y-1]
 			if subjectName == "" {
 				logrus.WithFields(logrus.Fields{
+					"文件": file.Path,
 					"行":  x,
 					"列":  MustColumnNumberToName(y),
 					"班级": className,
@@ -87,6 +94,7 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 					Y:         y,
 				}
 				logrus.WithFields(logrus.Fields{
+					"文件":   file.Path,
 					"行":    x,
 					"列":    MustColumnNumberToName(y),
 					"班级":   className,
@@ -105,13 +113,14 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 					Y:         y,
 				}
 				logrus.WithFields(logrus.Fields{
+					"文件":   file.Path,
 					"行":    x,
 					"列":    MustColumnNumberToName(y),
 					"班级":   className,
 					"学生":   studentName,
 					"科目":   subjectName,
 					"分数数据": rawScoreStr,
-				}).Infoln("分数加载成功")
+				}).Debugln("分数加载成功")
 			}
 		}
 	}

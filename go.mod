@@ -10,12 +10,14 @@ require (
 	github.com/antchfx/xmlquery v1.2.2 // indirect
 	github.com/antchfx/xpath v1.1.3 // indirect
 	github.com/elonzh/colly-bolt-storage v0.1.0
+	github.com/gdamore/tcell v1.3.0
 	github.com/gobuffalo/envy v1.8.1 // indirect
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gocolly/colly v1.2.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
+	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect; indirectist
 	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.5.1 // indirect

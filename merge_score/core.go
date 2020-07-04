@@ -38,6 +38,13 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 	headers := rows[0]
 	for i, v := range headers {
 		headers[i] = strings.TrimSpace(v)
+		if headers[i] == "" {
+			logrus.WithFields(logrus.Fields{
+				"文件": file.Path,
+				"表头": headers,
+			}).Errorln("存在空白表头")
+			return nil, fmt.Errorf(`文件 "%s" 存在空白表头，表头: %v`, file.Path, headers)
+		}
 	}
 	if len(headers) < 4 {
 		logrus.WithFields(logrus.Fields{
@@ -46,18 +53,33 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 		}).Errorln("列数小于 4 列，是不是没有数据？")
 		return nil, fmt.Errorf(`文件 "%s" 列数小于 4 列，是不是没有数据？表头: %v`, file.Path, headers)
 	}
+	studentNum := len(rows) - 1
+	logrus.WithFields(logrus.Fields{
+		"SheetMap":      file.GetSheetMap(),
+		"Path":          file.Path,
+		"HeadersLength": len(headers),
+		"Headers":       headers,
+		"StudentNum":    studentNum,
+	}).Debugln("headers loaded")
 
+	const subjectNameIndexOffset = 3
 	t := &ScoreTable{
 		file:     file,
 		SkipRows: skipRows,
-		ScoreMap: make(map[StudentSubject]StudentSubjectScore, len(rows)-1),
+		ScoreMap: make(map[StudentSubject]StudentSubjectScore, studentNum*(len(headers)-subjectNameIndexOffset)),
 	}
-	const subjectNameIndexOffset = 3
 	for rowIndex, row := range rows[1:] {
+		x := rowIndex + int(skipRows) + 1 + 1
+		if len(row) < subjectNameIndexOffset {
+			logrus.WithFields(logrus.Fields{
+				"文件": file.Path,
+				"行":  x,
+			}).Warnln("数据缺失, 跳过该行")
+			continue
+		}
 		if len(row) > len(headers) {
 			row = row[:len(headers)]
 		}
-		x := rowIndex + int(skipRows) + 1 + 1
 		className := strings.TrimSpace(row[2])
 		studentName := strings.TrimSpace(row[1])
 		if className == "" || studentName == "" {
@@ -68,6 +90,19 @@ func LoadScoreTable(file *excelize.File, skipRows uint32) (*ScoreTable, error) {
 				"学生": studentName,
 			}).Warnln("学生信息缺失, 跳过该行")
 			continue
+		}
+		// 先初始化学生的成绩表
+		for subjectNameIndex, subjectName := range headers[subjectNameIndexOffset:] {
+			y := subjectNameIndex + subjectNameIndexOffset + 1
+			t.ScoreMap[StudentSubject{
+				ClassName:   className,
+				StudentName: studentName,
+				SubjectName: subjectName,
+			}] = StudentSubjectScore{
+				ScoreData: "",
+				X:         x,
+				Y:         y,
+			}
 		}
 		for subjectNameIndex, rawScoreStr := range row[subjectNameIndexOffset:] {
 			y := subjectNameIndex + subjectNameIndexOffset + 1
@@ -152,6 +187,12 @@ func MergeScore(resultFilePath string, scoreFilePaths []string, skipRows uint32)
 	if err != nil {
 		return err
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"文件":    file.Path,
+		"学生科目数": len(resultScoreTable.ScoreMap),
+		"学生科目表": len(resultScoreTable.ScoreMap),
+	}).Infoln("读取汇总表成功")
 	sheetName := file.GetSheetName(sheetIndex)
 
 	scoreTables := make([]*ScoreTable, 0, len(scoreFilePaths))

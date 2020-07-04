@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/sirupsen/logrus"
@@ -34,6 +35,7 @@ func RenderMessage(file *excelize.File, skipRows uint32) error {
 	}).Debugln("数据加载完成")
 	buf := bytes.Buffer{}
 	for _, d := range maps {
+		needRetake := false
 		name := d[nameField]
 		buf.WriteString(fmt.Sprintf("%s家长你好，以下是%s本学期的分数：\n", name, name))
 		for idx, h := range headers {
@@ -42,6 +44,9 @@ func RenderMessage(file *excelize.File, skipRows uint32) error {
 					buf.WriteString(fmt.Sprintf("%s %s分", h, d[h]))
 				} else {
 					buf.WriteString(fmt.Sprintf("%s %s", h, d[h]))
+					if strings.Contains(d[h], "重修") {
+						needRetake = true
+					}
 				}
 				if idx != len(headers)-1 {
 					buf.WriteString("；")
@@ -50,7 +55,11 @@ func RenderMessage(file *excelize.File, skipRows uint32) error {
 				}
 			}
 		}
-		buf.WriteString("以上课程满分均为100分。\n\n")
+		buf.WriteString("以上课程满分均为100分。")
+		if needRetake {
+			buf.WriteString(fmt.Sprintf("“重修”课程是由于%s在本学期的到课率少于总课程的三分之二，根据我院学生手册规定，需要进行重修。具体重修事宜请学生本人等待辅导员通知。", name))
+		}
+		buf.WriteString("请家长提醒孩子，在班级群中查看今年的暑假作业要求，按时完成作业。\n\n")
 	}
 
 	outputPath := filepath.Join(filepath.Dir(file.Path), "成绩信息.txt")

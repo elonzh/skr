@@ -47,6 +47,9 @@ func ReadMap(rows [][]string, headers, excludeHeaders []string) ([]string, []map
 	for _, row := range rows[1:] {
 		m := make(map[string]string, len(headerMap))
 		for key, index := range headerMap {
+			if index >= len(row) {
+				continue
+			}
 			m[key] = row[index]
 		}
 		result = append(result, m)

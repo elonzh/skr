@@ -18,7 +18,6 @@ Options:
 
 Commands:
   coin                   When faced with two choices, simply toss a coin.
-  extract_k8s_doc_links  extract kubernetes document links.
   octodex                Download Octocats from https://octodex.github.com
   simpledesktops         Download wallpapers from http://simpledesktops.com/
   weread                 微信读书自动读书

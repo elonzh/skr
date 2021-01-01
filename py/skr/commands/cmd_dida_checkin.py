@@ -113,8 +113,14 @@ def log_to_checkin(habit_id, logs):
 
 @click.command()
 @click.pass_context
-@click.option("-t", "--token", type=click.STRING, required=True, help="滴答清单认证token")
-@click.option("-u", "--user_id", type=click.STRING, required=True, help="滴答清单认证token")
+@click.option(
+    "-t",
+    "--token",
+    type=click.STRING,
+    required=True,
+    help="滴答清单认证token, 名称为 t 的 cookie",
+)
+@click.option("-u", "--user_id", type=click.STRING, required=True, help="扇贝用户 ID, 为数字")
 @click.option(
     "-s", "--start_date", type=click.STRING, default="2016-01-01", help="起始日期"
 )
